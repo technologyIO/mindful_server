@@ -137,21 +137,29 @@ router.get('/search/doctors', async (req, res) => {
     const query = {};
 
     if (location) {
-      if (specialization) query.specialization = { $regex: specialization, $options: 'i' };
-      if (location) query.location = { $regex: location, $options: 'i' };
-      // query.location = location;
+      query.location = { $regex: location, $options: 'i' }; // Case-insensitive match for location
     }
 
-    // if (specialization) {
-    //   query.specialization = { $in: [specialization] }; // Check if the specialization exists in the array
-    // }
+    const normalize = (text) =>
+      text.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-    const doctors = await Doctor.find(query).sort({ order: 1 }); // Fetch and sort by order
+    if (specialization) {
+      // Normalize the specialization query parameter
+      const normalizedSpecialization = normalize(specialization);
+      query.specialization = {
+        $regex: normalizedSpecialization, // Match normalized specialization
+        $options: 'i', // Case-insensitive
+      };
+    }
+
+    // Fetch and sort by order
+    const doctors = await Doctor.find(query).sort({ order: 1 });
     res.status(200).json(doctors);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

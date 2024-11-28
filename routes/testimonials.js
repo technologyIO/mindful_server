@@ -117,10 +117,31 @@ router.get('/search/testimonials', async (req, res) => {
       if (treatment) query.treatment = { $regex: treatment, $options: 'i' };
       if (location) query.location = { $regex: location, $options: 'i' };
 
-      console.log('Location:', location);
-      console.log('Query:', query);
+      // console.log('Location:', location);
+      // console.log('Query:', query);
 
       // Fetch testimonials matching the query
+      const normalize = (text) =>
+        text.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  
+   
+      if (condition) {
+        // Normalize the query parameter
+        const normalizedCondition = normalize(condition);
+        query.condition = {
+          $regex: normalizedCondition, // Match normalized condition
+          $options: 'i', // Case-insensitive
+        };
+      }
+  
+      if (treatment) {
+        // Normalize the query parameter
+        const normalizedTreatment = normalize(treatment);
+        query.treatment = {
+          $regex: normalizedTreatment, // Match normalized treatment
+          $options: 'i', // Case-insensitive
+        };
+      }
       const testimonials = await Testimonial.find(query).populate('doctor', 'name');
 
       // Check if testimonials exist
