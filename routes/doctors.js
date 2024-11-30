@@ -132,7 +132,7 @@ router.get('/search/doctors', async (req, res) => {
   try {
     const location = decodeURIComponent(req.query.location || '');
     const specialization = decodeURIComponent(req.query.specialization || '');
-
+    const designation  = decodeURIComponent(req.query.designation || '');
     // Build the query object based on the provided query parameters
     const query = {};
 
@@ -148,6 +148,15 @@ router.get('/search/doctors', async (req, res) => {
       const normalizedSpecialization = normalize(specialization);
       query.specialization = {
         $regex: normalizedSpecialization, // Match normalized specialization
+        $options: 'i', // Case-insensitive
+      };
+    }
+
+    if (designation) {
+      // Normalize the designation query parameter
+      const normalizedDesignation = normalize(designation);
+      query.designation = {
+        $regex: normalizedDesignation, // Match normalized designation
         $options: 'i', // Case-insensitive
       };
     }
