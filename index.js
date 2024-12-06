@@ -15,6 +15,7 @@ const clinicRouter = require("./routes/clinicLocation");
 const doctorsRouter = require("./routes/doctors");
 const testimonialsRouter = require("./routes/testimonials");
 const testRouter = require("./routes/tests");
+const adminRouter = require("./routes/Admin");
 app.use(cors());
 app.use(express.json());
 
@@ -27,6 +28,7 @@ app.use('/api/clinicLocation',clinicRouter)
 app.use('/api/doctors',doctorsRouter)
 app.use('/api/testimonials',testimonialsRouter)
 app.use('/api/tests', testRouter)
+app.use('/api/admin', adminRouter)
 
 
 app.get("/", (req, res) => {
