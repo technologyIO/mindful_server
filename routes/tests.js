@@ -100,7 +100,7 @@ router.get('/getQuestions/:testName', async (req, res) => {
 // API to submit answers and calculate score
 router.post('/submitTest', async (req, res) => {
     try {
-        const { email, testId, answers } = req.body; // answers is an array of { questionId, selectedChoiceIndex }
+        const { email, testId, answers, phone, name } = req.body; // answers is an array of { questionId, selectedChoiceIndex }
 
         let totalScore = 0;
 
@@ -127,7 +127,9 @@ router.post('/submitTest', async (req, res) => {
         // Save the test submission with total score
         const userTestSubmission = new UserTestSubmission({
             email,
+            name,
             testId,
+            phone,
             answers,
             totalScore
         });
@@ -142,5 +144,44 @@ router.post('/submitTest', async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+router.get('/getAllResults', async (req, res) => {
+    try {
+        const allResults = await UserTestSubmission.find().populate({
+            path: 'testId',
+            select: 'testName', // Only fetch the testName field
+        });
+        res.status(200).json( allResults );
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
+router.get('/getSubmissionDetails/:submissionId', async (req, res) => {
+    try {
+        const { submissionId } = req.params;
+
+        // Fetch the submission with all details
+        const submission = await UserTestSubmission.findById(submissionId)
+            .populate({
+                path: 'testId',
+                select: 'testName', // Include test name from the Test collection
+            })
+            .populate({
+                path: 'answers.questionId',
+                select: 'questionText choices reverseScored score', // Include question details
+            });
+
+        if (!submission) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+
+        res.status(200).json(submission);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 
 module.exports = router;

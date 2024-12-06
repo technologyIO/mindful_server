@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 
 const userTestSubmissionSchema = new mongoose.Schema({
-    email: { type: String, required: true },
+    name: { type: String, required: true },
+    email: { type: String, required: false },
+    phone: { type: Number, required: true },
     testId: { type: mongoose.Schema.Types.ObjectId, ref: 'Test', required: true },
     answers: [
         {
@@ -9,9 +11,10 @@ const userTestSubmissionSchema = new mongoose.Schema({
             selectedChoiceIndex: { type: Number, required: true } // Index of the selected choice (0, 1, 2, etc.)
         }
     ],
-    totalScore: { type: Number, required: true } // Calculated total score for the test
-});
+    totalScore: { type: Number, required: true },
+}, { timestamps: true });
 
 const UserTestSubmission = mongoose.model('UserTestSubmission', userTestSubmissionSchema);
 
 module.exports = UserTestSubmission;
+
