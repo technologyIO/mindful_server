@@ -147,11 +147,11 @@ router.post('/submitTest', async (req, res) => {
 
 router.get('/getAllResults', async (req, res) => {
     try {
-        const allResults = await UserTestSubmission.find().populate({
+        const allResults = await UserTestSubmission.find().sort({ createdAt: -1 }).populate({
             path: 'testId',
             select: 'testName', // Only fetch the testName field
         });
-        res.status(200).json( allResults );
+        res.status(200).json(allResults);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
