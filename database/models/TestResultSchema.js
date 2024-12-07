@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const userTestSubmissionSchema = new mongoose.Schema({
-    name: { type: String, required: true },
+    name: { type: String, required: false },
     email: { type: String, required: false },
-    phone: { type: Number, required: true },
+    phone: { type: Number, required: false },
     testId: { type: mongoose.Schema.Types.ObjectId, ref: 'Test', required: true },
     answers: [
         {
