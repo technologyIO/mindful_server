@@ -209,13 +209,18 @@ router.post('/', async (req, res) => {
   // Get a single testimonial by ID
   router.get('/:id', async (req, res) => {
     try {
+      // Check if id is a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
+      
       const testimonial = await Testimonial.findById(req.params.id).populate('doctor', 'name');
       if (!testimonial) {
         return res.status(404).json({ message: 'Testimonial not found' });
       }
-      res.json(testimonial);
+      return res.json(testimonial);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
   });
   
