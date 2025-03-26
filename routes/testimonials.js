@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const Testimonial = require('../database/models/TestimonialSchema');
 const Doctor = require('../database/models/DoctorSchema');
+const { default: mongoose } = require('mongoose');
 const router = express.Router();
 
 // bulk upload 
