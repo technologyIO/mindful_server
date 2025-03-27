@@ -143,7 +143,7 @@ router.get('/search/testimonials', async (req, res) => {
           $options: 'i', // Case-insensitive
         };
       }
-      const testimonials = await Testimonial.find(query).populate('doctor', 'name');
+      const testimonials = await Testimonial.find(query).populate('doctor', 'name image');
 
       // Check if testimonials exist
       if (!testimonials || testimonials.length === 0) {
@@ -175,7 +175,7 @@ router.get('/doctor/:doctorId', async (req, res) => {
       const doctorId = req.params.doctorId;
       
       // Find all testimonials that match the doctor ID
-      const testimonials = await Testimonial.find({ doctor: doctorId }).populate('doctor', 'name'); // Only populate doctor name
+      const testimonials = await Testimonial.find({ doctor: doctorId }).populate('doctor', 'name image'); // Populate doctor name and image
   
       if (!testimonials || testimonials.length === 0) {
         return res.status(404).json({ message: 'No testimonials found for this doctor' });
@@ -200,7 +200,7 @@ router.post('/', async (req, res) => {
   // Get all testimonials
   router.get('/', async (req, res) => {
     try {
-        const testimonials = await Testimonial.find().populate('doctor', 'name');
+        const testimonials = await Testimonial.find().populate('doctor', 'name image');
       res.json(testimonials);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -215,7 +215,7 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ message: 'Invalid ID' });
       }
       
-      const testimonial = await Testimonial.findById(req.params.id).populate('doctor', 'name');
+      const testimonial = await Testimonial.findById(req.params.id).populate('doctor', 'name image');
       if (!testimonial) {
         return res.status(404).json({ message: 'Testimonial not found' });
       }
