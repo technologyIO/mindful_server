@@ -157,6 +157,37 @@ router.get('/search/testimonials', async (req, res) => {
   }
 });
 
+// by location
+router.get('/search/testimonials/by-location', async (req, res) => {
+  try {
+      // Extract and normalize the location parameter
+      let location = req.query.location ? decodeURIComponent(req.query.location).trim() : undefined;
+
+      if (!location) {
+          return res.status(400).json({ message: 'Location parameter is required' });
+      }
+
+      // Normalize spaces in the location
+      // location = location.replace(/\s+/g, ' '); // Replace multiple spaces with a single space
+
+      // Case-insensitive and partial match search
+      let regexPattern = location.split(' ').join('\\s+');
+      const query = { location: { $regex: regexPattern, $options: 'i' } };
+      // Fetch testimonials matching the location
+      const testimonials = await Testimonial.find(query).populate('doctor', 'name image');
+
+      // Check if testimonials exist
+      if (!testimonials || testimonials.length === 0) {
+          return res.status(404).json({ message: 'No testimonials found for the given location' });
+      }
+
+      // Respond with testimonials
+      res.json(testimonials);
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+});
+
 
 
 
@@ -206,6 +237,33 @@ router.post('/', async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   });
+
+  // get all testimonials with doctors id array 
+  router.post('/getAllTestimonials/DoctorArray', async (req, res) => {
+    console.log("doctorIds",  req.body);
+    try {
+        let { doctorIds } = req.body;
+
+        if (!doctorIds || !Array.isArray(doctorIds)) {
+            return res.status(400).json({ message: 'doctorIds must be an array in the request body' });
+        }
+
+        // Validate each ID
+        const validDoctorIds = doctorIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+
+        if (validDoctorIds.length === 0) {
+            return res.status(400).json({ message: 'Invalid doctor IDs' });
+        }
+
+        // Fetch testimonials
+        const testimonials = await Testimonial.find({ doctor: { $in: validDoctorIds } }).populate('doctor');
+
+        res.status(200).json(testimonials);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
   
   // Get a single testimonial by ID
   router.get('/:id', async (req, res) => {

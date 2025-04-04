@@ -27,6 +27,12 @@ const ClinicLocationSchema = new mongoose.Schema({
     details: {
         type: mongoose.Schema.Types.Mixed,
     },
+    metaTitle: {              // New meta title field
+        type: String,
+    },
+    metaDescription: {        // New meta description field
+        type: String,
+    },
 
 },
     { timestamps: true });

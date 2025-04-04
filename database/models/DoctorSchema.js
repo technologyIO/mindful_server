@@ -49,6 +49,12 @@ const DoctorSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  metaTitle: {              // New meta title field
+    type: String,
+  },
+  metaDescription: {        // New meta description field
+    type: String,
+  },
   order: {
     type: Number,
     required: true,
