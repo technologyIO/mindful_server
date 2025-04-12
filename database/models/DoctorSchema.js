@@ -25,6 +25,16 @@ const DoctorSchema = new mongoose.Schema({
   specialization: {
     type: mongoose.Schema.Types.Mixed,
   },
+  // Categorized specializations (if toggle_specialization = true)
+  specialization_categories: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
+  // Flag to choose between flat vs. categorized view
+  toggle_specialization: {
+    type: Boolean,
+    default: false,
+  },
   experience: {
     type: Number,
   },

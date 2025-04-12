@@ -181,7 +181,7 @@ router.get('/search/testimonials/by-location', async (req, res) => {
           return res.status(404).json({ message: 'No testimonials found for the given location' });
       }
 
-      // Respond with testimonials
+      // Respond with testimonials 
       res.json(testimonials);
   } catch (error) {
       res.status(500).json({ message: error.message });
