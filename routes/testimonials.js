@@ -158,33 +158,40 @@ router.get('/search/testimonials', async (req, res) => {
 });
 
 // by location
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
 router.get('/search/testimonials/by-location', async (req, res) => {
   try {
-      // Extract and normalize the location parameter
-      let location = req.query.location ? decodeURIComponent(req.query.location).trim() : undefined;
+    let location = req.query.location ? decodeURIComponent(req.query.location).trim() : undefined;
+    if (!location) {
+      return res.status(400).json({ message: 'Location parameter is required' });
+    }
 
-      if (!location) {
-          return res.status(400).json({ message: 'Location parameter is required' });
-      }
+    // Build regex for partial, case-insensitive match
+    const regexPattern = location.split(' ').join('\\s+');
+    const query = { location: { $regex: regexPattern, $options: 'i' } };
 
-      // Normalize spaces in the location
-      // location = location.replace(/\s+/g, ' '); // Replace multiple spaces with a single space
+    // Fetch testimonials matching the location
+    const testimonials = await Testimonial.find(query)
+      .populate('doctor', '_id name image')
+      .lean();
 
-      // Case-insensitive and partial match search
-      let regexPattern = location.split(' ').join('\\s+');
-      const query = { location: { $regex: regexPattern, $options: 'i' } };
-      // Fetch testimonials matching the location
-      const testimonials = await Testimonial.find(query).populate('doctor', 'name image');
+    if (!testimonials.length) {
+      return res.status(404).json({ message: 'No testimonials found for the given location' });
+    }
 
-      // Check if testimonials exist
-      if (!testimonials || testimonials.length === 0) {
-          return res.status(404).json({ message: 'No testimonials found for the given location' });
-      }
+    // Shuffle results
+    shuffle(testimonials);
 
-      // Respond with testimonials 
-      res.json(testimonials);
+    // Respond
+    res.status(200).json(testimonials);
   } catch (error) {
-      res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -240,31 +247,70 @@ router.post('/', async (req, res) => {
 
   // get all testimonials with doctors id array 
   router.post('/getAllTestimonials/DoctorArray', async (req, res) => {
-    console.log("doctorIds",  req.body);
     try {
-        let { doctorIds } = req.body;
-
-        if (!doctorIds || !Array.isArray(doctorIds)) {
-            return res.status(400).json({ message: 'doctorIds must be an array in the request body' });
-        }
-
-        // Validate each ID
-        const validDoctorIds = doctorIds.filter(id => mongoose.Types.ObjectId.isValid(id));
-
-        if (validDoctorIds.length === 0) {
-            return res.status(400).json({ message: 'Invalid doctor IDs' });
-        }
-
-        // Fetch testimonials
-        const testimonials = await Testimonial.find({ doctor: { $in: validDoctorIds } }).populate('doctor');
-
-        res.status(200).json(testimonials);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-});
+      const { doctorIds } = req.body;
+      if (!Array.isArray(doctorIds)) {
+        return res.status(400).json({ message: 'doctorIds must be an array' });
+      }
   
+      // Validate ObjectId strings
+      const validDoctorIds = doctorIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+      if (validDoctorIds.length === 0) {
+        return res.status(400).json({ message: 'No valid doctor IDs' });
+      }
+  
+      // Fetch all testimonials for the given doctors
+      const allTestimonials = await Testimonial
+        .find({ doctor: { $in: validDoctorIds } })
+        .populate('doctor', '_id name image')
+        .lean();
+  
+      // Group by doctor._id
+      const byDoctor = allTestimonials.reduce((acc, t) => {
+        const docId = t.doctor._id.toString();
+        (acc[docId] = acc[docId] || []).push(t);
+        return acc;
+      }, {});
+  
+      // Fisher–Yates shuffle helper
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+  
+      // 1. Shuffle the doctor IDs
+      const doctorsShuffled = Object.keys(byDoctor);
+      shuffle(doctorsShuffled);
+  
+      // 2. Build initial (one per doctor) and rest arrays
+      const initial = [];
+      const rest = [];
+      for (const docId of doctorsShuffled) {
+        const list = byDoctor[docId];
+        shuffle(list);
+        initial.push(list[0]);
+        if (list.length > 1) rest.push(...list.slice(1));
+      }
+  
+      // 3. Combine and then split at the 10-item mark
+      const combined = initial.concat(rest);
+      const prefix = combined.slice(0, 10);
+      const suffix = combined.slice(10);
+  
+      // 4. Shuffle only the suffix
+      shuffle(suffix);
+  
+      // 5. Return prefix + shuffled suffix
+      return res.status(200).json(prefix.concat(suffix));
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+  
+
   // Get a single testimonial by ID
   router.get('/:id', async (req, res) => {
     try {
