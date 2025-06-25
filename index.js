@@ -31,7 +31,7 @@ app.use('/api/testimonials',testimonialsRouter)
 app.use('/api/tests', testRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/adsClinic', ClinicAdsRoutes)
-
+app.use('/api/otp', require('./routes/otp.js'))
 
 connectDB()
 
